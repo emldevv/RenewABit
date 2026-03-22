@@ -1,51 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Renew-a-Bit: Digital Energy Simulation</title>
+    <title>Renew-a-Bit: Energy Simulation</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f0f4f8; padding: 20px; color: #2c3e50; }
-        .container { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .pool { border: 3px solid #bdc3c7; min-height: 120px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin: 20px 0; padding: 15px; border-radius: 12px; background: #fafafa; }
-        .bead { width: 16px; height: 16px; margin: 3px; border-radius: 50%; display: inline-block; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3); }
-        .non { background: #2c3e50; } /* Fossil Fuel */
-        .ren { background: #27ae60; } /* Renewable */
-        .controls { background: #e8f4fd; padding: 25px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #d6eaf8; }
-        input { width: 80px; padding: 10px; font-size: 18px; border: 2px solid #3498db; border-radius: 8px; text-align: center; margin-right: 10px; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.2s; }
-        #consumeBtn { background: #2980b9; color: white; }
-        #consumeBtn:hover { background: #1f6391; }
-        #resetBtn { background: #e74c3c; color: white; margin-left: 10px; }
-        #resetBtn:hover { background: #c0392b; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; font-size: 1.1em; background: #f8f9fa; padding: 15px; border-radius: 8px; }
-        .log { font-weight: bold; color: #2980b9; margin-top: 10px; height: 25px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
-        th { background: #34495e; color: white; padding: 12px; border: 1px solid #2c3e50; }
-        td { border: 1px solid #bdc3c7; padding: 10px; text-align: center; }
-        .crisis { color: #e74c3c; font-weight: bold; font-size: 1.3em; display: none; margin-top: 15px; }
+        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px-8px rgba(0,0,0,0.1); }
+        .stats { display: flex; justify-content: space-around; margin: 20px 0; font-weight: bold; }
+        .pool { border: 2px solid #333; height: 100px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; padding: 10px; border-radius: 8px; }
+        .bead { width: 15px; height: 15px; margin: 2px; border-radius: 50%; display: inline-block; }
+        .non { background: #333; } /* Fossil Fuel */
+        .ren { background: #4CAF50; } /* Renewable */
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #2196F3; color: white; border: none; border-radius: 5px; }
+        button:disabled { background: #ccc; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Renew-a-Bit Simulation</h1>
-        <p>Resource Ratio: 92% Non-Renewable (Black) | 8% Renewable (Green)</p>
+        <p>Your goal: Manage your energy pool. Non-renewables (Black) disappear. Renewables (Green) return to the pool.</p>
         
         <div class="pool" id="poolDisplay"></div>
 
-        <div class="controls">
-            <strong>Handful Size (from Worksheet):</strong>
-            <input type="number" id="extractAmount" value="10" min="1">
-            <button onclick="blindConsume()" id="consumeBtn">Blind Consumption (The Blindfold)</button>
-            <button onclick="resetSimulation()" id="resetBtn">Reset</button>
-            <div id="logArea" class="log"></div>
-            <div id="crisisMsg" class="crisis">⚠️ ENERGY CRISIS: Fossil Fuels Depleted!</div>
+        <div class="stats">
+            <div>Year: <span id="yearNum">0</span></div>
+            <div>Remaining Units: <span id="totalNum">100</span></div>
         </div>
 
-        <div class="stats-grid">
-            <div>Year: <span id="yearNum">0</span></div>
-            <div>Black (Non): <span id="nonNum">92</span></div>
-            <div>Green (Ren): <span id="renNum">8</span></div>
-            <div>Total: <span id="totalNum">100</span></div>
+        <div id="controls">
+            <label>Units to extract: </label>
+            <input type="number" id="extractAmount" value="10" min="1">
+            <button onclick="runYear()" id="runBtn">Run Next Year</button>
         </div>
 
         <table id="resultsTable">
@@ -53,8 +39,8 @@
                 <tr>
                     <th>Year</th>
                     <th>Extracted</th>
-                    <th>% Non-Ren Left</th>
-                    <th>% Renewable Left</th>
+                    <th>Remaining (Non)</th>
+                    <th>Remaining (Ren)</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -68,70 +54,52 @@
 
         function updateDisplay() {
             document.getElementById('yearNum').innerText = year;
-            document.getElementById('nonNum').innerText = nonRenewable;
-            document.getElementById('renNum').innerText = renewable;
             document.getElementById('totalNum').innerText = nonRenewable + renewable;
-            
             const pool = document.getElementById('poolDisplay');
             pool.innerHTML = '';
             for(let i=0; i<nonRenewable; i++) pool.innerHTML += '<div class="bead non"></div>';
             for(let i=0; i<renewable; i++) pool.innerHTML += '<div class="bead ren"></div>';
         }
 
-        function blindConsume() {
+        function runYear() {
             let toExtract = parseInt(document.getElementById('extractAmount').value);
-            if (isNaN(toExtract) || toExtract <= 0 || nonRenewable <= 0) return;
+            let total = nonRenewable + renewable;
+            if (total <= 0) return;
 
             year++;
-            let pulledNon = 0;
-            let pulledRen = 0;
+            let extractedNon = 0;
+            let extractedRen = 0;
 
             for(let i=0; i < toExtract; i++) {
                 let currentTotal = nonRenewable + renewable;
                 if (currentTotal <= 0) break;
                 
-                let roll = Math.random() * currentTotal;
-                if (roll < nonRenewable) {
+                let chance = Math.random() * currentTotal;
+                if (chance < nonRenewable) {
                     nonRenewable--;
-                    pulledNon++;
+                    extractedNon++;
                 } else {
                     renewable--;
-                    pulledRen++;
+                    extractedRen++;
                 }
             }
 
-            // RULE: Renewable beads are returned after the draw
-            renewable += pulledRen;
+            // Renewable units are replenished (returned to the bag)
+            renewable += extractedRen;
 
-            document.getElementById('logArea').innerText = `BLIND RESULT: Pulled ${pulledNon} Black, ${pulledRen} Green (replenished).`;
-
-            let totalAfter = nonRenewable + renewable;
-            let nonPerc = ((nonRenewable / totalAfter) * 100).toFixed(1);
-            let renPerc = ((renewable / totalAfter) * 100).toFixed(1);
-
-            const table = document.getElementById('resultsTable').querySelector('tbody');
+            const table = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
             let row = table.insertRow();
-            row.innerHTML = `<td>${year}</td><td>${toExtract}</td><td>${nonPerc}%</td><td>${renPerc}%</td>`;
+            row.insertCell(0).innerText = year;
+            row.insertCell(1).innerText = toExtract;
+            row.insertCell(2).innerText = nonRenewable;
+            row.insertCell(3).innerText = renewable;
 
             updateDisplay();
-
             if (nonRenewable <= 0) {
-                document.getElementById('consumeBtn').disabled = true;
-                document.getElementById('crisisMsg').style.display = 'block';
+                document.getElementById('runBtn').disabled = true;
+                alert("CRISIS: Your non-renewable energy is depleted!");
             }
         }
-
-        function resetSimulation() {
-            nonRenewable = 92;
-            renewable = 8;
-            year = 0;
-            document.getElementById('resultsTable').querySelector('tbody').innerHTML = '';
-            document.getElementById('consumeBtn').disabled = false;
-            document.getElementById('crisisMsg').style.display = 'none';
-            document.getElementById('logArea').innerText = '';
-            updateDisplay();
-        }
-
         updateDisplay();
     </script>
 </body>
