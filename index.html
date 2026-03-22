@@ -1,46 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Renew-a-Bit: Energy Simulation</title>
+    <meta charset="UTF-8">
+    <title>Renew-a-Bit: Digital Energy Simulation</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px-8px rgba(0,0,0,0.1); }
-        .stats { display: flex; justify-content: space-around; margin: 20px 0; font-weight: bold; }
-        .pool { border: 2px solid #333; height: 100px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; padding: 10px; border-radius: 8px; }
-        .bead { width: 15px; height: 15px; margin: 2px; border-radius: 50%; display: inline-block; }
-        .non { background: #333; } /* Fossil Fuel */
-        .ren { background: #4CAF50; } /* Renewable */
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #2196F3; color: white; border: none; border-radius: 5px; }
-        button:disabled { background: #ccc; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #eceff1; padding: 20px; color: #37474f; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .pool { border: 3px solid #cfd8dc; min-height: 120px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin: 20px 0; padding: 15px; border-radius: 12px; background: #f9f9f9; }
+        .bead { width: 18px; height: 18px; margin: 3px; border-radius: 50%; display: inline-block; transition: transform 0.2s; }
+        .non { background: #263238; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4); } /* Fossil Fuel */
+        .ren { background: #43a047; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4); } /* Renewable */
+        .controls { background: #f1f8e9; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        input { width: 60px; padding: 8px; font-size: 16px; border: 2px solid #a5d6a7; border-radius: 5px; text-align: center; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; margin: 5px; transition: 0.3s; }
+        #consumeBtn { background: #2e7d32; color: white; }
+        #consumeBtn:hover { background: #1b5e20; }
+        #resetBtn { background: #d32f2f; color: white; }
+        #resetBtn:hover { background: #b71c1c; }
+        button:disabled { background: #cfd8dc !important; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; }
+        th { background: #f5f5f5; border: 1px solid #ddd; padding: 12px; }
+        td { border: 1px solid #ddd; padding: 10px; }
+        .alert { color: #d32f2f; font-weight: bold; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Renew-a-Bit Simulation</h1>
-        <p>Your goal: Manage your energy pool. Non-renewables (Black) disappear. Renewables (Green) return to the pool.</p>
+        <p>Simulation of 92% Non-Renewable (Black) and 8% Renewable (Green) Energy Resources.</p>
         
         <div class="pool" id="poolDisplay"></div>
 
-        <div class="stats">
-            <div>Year: <span id="yearNum">0</span></div>
-            <div>Remaining Units: <span id="totalNum">100</span></div>
+        <div class="controls">
+            <label><strong>Units to Extract this Year:</strong> </label>
+            <input type="number" id="extractAmount" value="10" min="1">
+            <br><br>
+            <button onclick="blindConsume()" id="consumeBtn">Run Blind Consumption</button>
+            <button onclick="resetSimulation()" id="resetBtn">Reset Simulation</button>
+            <div id="crisisAlert" class="alert">⚠️ ENERGY CRISIS: Non-renewable resources depleted!</div>
         </div>
 
-        <div id="controls">
-            <label>Units to extract: </label>
-            <input type="number" id="extractAmount" value="10" min="1">
-            <button onclick="runYear()" id="runBtn">Run Next Year</button>
+        <div style="display: flex; justify-content: space-around; font-size: 1.2em; margin-bottom: 10px;">
+            <div>Year: <span id="yearNum">0</span></div>
+            <div>Remaining Non-Renewable: <span id="nonNum">92</span></div>
+            <div>Remaining Renewable: <span id="renNum">8</span></div>
         </div>
 
         <table id="resultsTable">
             <thead>
                 <tr>
                     <th>Year</th>
-                    <th>Extracted</th>
-                    <th>Remaining (Non)</th>
-                    <th>Remaining (Ren)</th>
+                    <th>Extracted Units</th>
+                    <th>Remaining (Non-Ren)</th>
+                    <th>Remaining (Renewable)</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -48,23 +60,26 @@
     </div>
 
     <script>
-        let nonRenewable = 92;
-        let renewable = 8;
+        let initialNon = 92;
+        let initialRen = 8;
+        let nonRenewable = initialNon;
+        let renewable = initialRen;
         let year = 0;
 
         function updateDisplay() {
             document.getElementById('yearNum').innerText = year;
-            document.getElementById('totalNum').innerText = nonRenewable + renewable;
+            document.getElementById('nonNum').innerText = nonRenewable;
+            document.getElementById('renNum').innerText = renewable;
             const pool = document.getElementById('poolDisplay');
             pool.innerHTML = '';
             for(let i=0; i<nonRenewable; i++) pool.innerHTML += '<div class="bead non"></div>';
             for(let i=0; i<renewable; i++) pool.innerHTML += '<div class="bead ren"></div>';
         }
 
-        function runYear() {
+        function blindConsume() {
             let toExtract = parseInt(document.getElementById('extractAmount').value);
             let total = nonRenewable + renewable;
-            if (total <= 0) return;
+            if (nonRenewable <= 0 || toExtract <= 0) return;
 
             year++;
             let extractedNon = 0;
@@ -74,6 +89,7 @@
                 let currentTotal = nonRenewable + renewable;
                 if (currentTotal <= 0) break;
                 
+                // Selection logic: Probability based on current pool composition
                 let chance = Math.random() * currentTotal;
                 if (chance < nonRenewable) {
                     nonRenewable--;
@@ -84,7 +100,7 @@
                 }
             }
 
-            // Renewable units are replenished (returned to the bag)
+            // RULE: Renewable units are replenished (returned to the pool) after each round
             renewable += extractedRen;
 
             const table = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
@@ -95,11 +111,24 @@
             row.insertCell(3).innerText = renewable;
 
             updateDisplay();
+
             if (nonRenewable <= 0) {
-                document.getElementById('runBtn').disabled = true;
-                alert("CRISIS: Your non-renewable energy is depleted!");
+                document.getElementById('consumeBtn').disabled = true;
+                document.getElementById('crisisAlert').style.display = 'block';
             }
         }
+
+        function resetSimulation() {
+            nonRenewable = initialNon;
+            renewable = initialRen;
+            year = 0;
+            document.getElementById('resultsTable').getElementsByTagName('tbody')[0].innerHTML = '';
+            document.getElementById('consumeBtn').disabled = false;
+            document.getElementById('crisisAlert').style.display = 'none';
+            document.getElementById('extractAmount').value = 10;
+            updateDisplay();
+        }
+
         updateDisplay();
     </script>
 </body>
