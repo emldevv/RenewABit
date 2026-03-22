@@ -4,55 +4,57 @@
     <meta charset="UTF-8">
     <title>Renew-a-Bit: Digital Energy Simulation</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #eceff1; padding: 20px; color: #37474f; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .pool { border: 3px solid #cfd8dc; min-height: 120px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin: 20px 0; padding: 15px; border-radius: 12px; background: #f9f9f9; }
-        .bead { width: 18px; height: 18px; margin: 3px; border-radius: 50%; display: inline-block; transition: transform 0.2s; }
-        .non { background: #263238; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4); } /* Fossil Fuel */
-        .ren { background: #43a047; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4); } /* Renewable */
-        .controls { background: #f1f8e9; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        input { width: 60px; padding: 8px; font-size: 16px; border: 2px solid #a5d6a7; border-radius: 5px; text-align: center; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; margin: 5px; transition: 0.3s; }
-        #consumeBtn { background: #2e7d32; color: white; }
-        #consumeBtn:hover { background: #1b5e20; }
-        #resetBtn { background: #d32f2f; color: white; }
-        #resetBtn:hover { background: #b71c1c; }
-        button:disabled { background: #cfd8dc !important; cursor: not-allowed; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; }
-        th { background: #f5f5f5; border: 1px solid #ddd; padding: 12px; }
-        td { border: 1px solid #ddd; padding: 10px; }
-        .alert { color: #d32f2f; font-weight: bold; margin-top: 10px; display: none; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f0f4f8; padding: 20px; color: #2c3e50; }
+        .container { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .pool { border: 3px solid #bdc3c7; min-height: 120px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin: 20px 0; padding: 15px; border-radius: 12px; background: #fafafa; }
+        .bead { width: 16px; height: 16px; margin: 3px; border-radius: 50%; display: inline-block; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3); }
+        .non { background: #2c3e50; } /* Fossil Fuel */
+        .ren { background: #27ae60; } /* Renewable */
+        .controls { background: #e8f4fd; padding: 25px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #d6eaf8; }
+        input { width: 80px; padding: 10px; font-size: 18px; border: 2px solid #3498db; border-radius: 8px; text-align: center; margin-right: 10px; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.2s; }
+        #consumeBtn { background: #2980b9; color: white; }
+        #consumeBtn:hover { background: #1f6391; }
+        #resetBtn { background: #e74c3c; color: white; margin-left: 10px; }
+        #resetBtn:hover { background: #c0392b; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; font-size: 1.1em; background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .log { font-weight: bold; color: #2980b9; margin-top: 10px; height: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        th { background: #34495e; color: white; padding: 12px; border: 1px solid #2c3e50; }
+        td { border: 1px solid #bdc3c7; padding: 10px; text-align: center; }
+        .crisis { color: #e74c3c; font-weight: bold; font-size: 1.3em; display: none; margin-top: 15px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Renew-a-Bit Simulation</h1>
-        <p>Simulation of 92% Non-Renewable (Black) and 8% Renewable (Green) Energy Resources.</p>
+        <p>Resource Ratio: 92% Non-Renewable (Black) | 8% Renewable (Green)</p>
         
         <div class="pool" id="poolDisplay"></div>
 
         <div class="controls">
-            <label><strong>Units to Extract this Year:</strong> </label>
+            <strong>Handful Size (from Worksheet):</strong>
             <input type="number" id="extractAmount" value="10" min="1">
-            <br><br>
-            <button onclick="blindConsume()" id="consumeBtn">Run Blind Consumption</button>
-            <button onclick="resetSimulation()" id="resetBtn">Reset Simulation</button>
-            <div id="crisisAlert" class="alert">⚠️ ENERGY CRISIS: Non-renewable resources depleted!</div>
+            <button onclick="blindConsume()" id="consumeBtn">Blind Consumption (The Blindfold)</button>
+            <button onclick="resetSimulation()" id="resetBtn">Reset</button>
+            <div id="logArea" class="log"></div>
+            <div id="crisisMsg" class="crisis">⚠️ ENERGY CRISIS: Fossil Fuels Depleted!</div>
         </div>
 
-        <div style="display: flex; justify-content: space-around; font-size: 1.2em; margin-bottom: 10px;">
+        <div class="stats-grid">
             <div>Year: <span id="yearNum">0</span></div>
-            <div>Remaining Non-Renewable: <span id="nonNum">92</span></div>
-            <div>Remaining Renewable: <span id="renNum">8</span></div>
+            <div>Black (Non): <span id="nonNum">92</span></div>
+            <div>Green (Ren): <span id="renNum">8</span></div>
+            <div>Total: <span id="totalNum">100</span></div>
         </div>
 
         <table id="resultsTable">
             <thead>
                 <tr>
                     <th>Year</th>
-                    <th>Extracted Units</th>
-                    <th>Remaining (Non-Ren)</th>
-                    <th>Remaining (Renewable)</th>
+                    <th>Extracted</th>
+                    <th>% Non-Ren Left</th>
+                    <th>% Renewable Left</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -60,16 +62,16 @@
     </div>
 
     <script>
-        let initialNon = 92;
-        let initialRen = 8;
-        let nonRenewable = initialNon;
-        let renewable = initialRen;
+        let nonRenewable = 92;
+        let renewable = 8;
         let year = 0;
 
         function updateDisplay() {
             document.getElementById('yearNum').innerText = year;
             document.getElementById('nonNum').innerText = nonRenewable;
             document.getElementById('renNum').innerText = renewable;
+            document.getElementById('totalNum').innerText = nonRenewable + renewable;
+            
             const pool = document.getElementById('poolDisplay');
             pool.innerHTML = '';
             for(let i=0; i<nonRenewable; i++) pool.innerHTML += '<div class="bead non"></div>';
@@ -78,54 +80,55 @@
 
         function blindConsume() {
             let toExtract = parseInt(document.getElementById('extractAmount').value);
-            let total = nonRenewable + renewable;
-            if (nonRenewable <= 0 || toExtract <= 0) return;
+            if (isNaN(toExtract) || toExtract <= 0 || nonRenewable <= 0) return;
 
             year++;
-            let extractedNon = 0;
-            let extractedRen = 0;
+            let pulledNon = 0;
+            let pulledRen = 0;
 
             for(let i=0; i < toExtract; i++) {
                 let currentTotal = nonRenewable + renewable;
                 if (currentTotal <= 0) break;
                 
-                // Selection logic: Probability based on current pool composition
-                let chance = Math.random() * currentTotal;
-                if (chance < nonRenewable) {
+                let roll = Math.random() * currentTotal;
+                if (roll < nonRenewable) {
                     nonRenewable--;
-                    extractedNon++;
+                    pulledNon++;
                 } else {
                     renewable--;
-                    extractedRen++;
+                    pulledRen++;
                 }
             }
 
-            // RULE: Renewable units are replenished (returned to the pool) after each round
-            renewable += extractedRen;
+            // RULE: Renewable beads are returned after the draw
+            renewable += pulledRen;
 
-            const table = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+            document.getElementById('logArea').innerText = `BLIND RESULT: Pulled ${pulledNon} Black, ${pulledRen} Green (replenished).`;
+
+            let totalAfter = nonRenewable + renewable;
+            let nonPerc = ((nonRenewable / totalAfter) * 100).toFixed(1);
+            let renPerc = ((renewable / totalAfter) * 100).toFixed(1);
+
+            const table = document.getElementById('resultsTable').querySelector('tbody');
             let row = table.insertRow();
-            row.insertCell(0).innerText = year;
-            row.insertCell(1).innerText = toExtract;
-            row.insertCell(2).innerText = nonRenewable;
-            row.insertCell(3).innerText = renewable;
+            row.innerHTML = `<td>${year}</td><td>${toExtract}</td><td>${nonPerc}%</td><td>${renPerc}%</td>`;
 
             updateDisplay();
 
             if (nonRenewable <= 0) {
                 document.getElementById('consumeBtn').disabled = true;
-                document.getElementById('crisisAlert').style.display = 'block';
+                document.getElementById('crisisMsg').style.display = 'block';
             }
         }
 
         function resetSimulation() {
-            nonRenewable = initialNon;
-            renewable = initialRen;
+            nonRenewable = 92;
+            renewable = 8;
             year = 0;
-            document.getElementById('resultsTable').getElementsByTagName('tbody')[0].innerHTML = '';
+            document.getElementById('resultsTable').querySelector('tbody').innerHTML = '';
             document.getElementById('consumeBtn').disabled = false;
-            document.getElementById('crisisAlert').style.display = 'none';
-            document.getElementById('extractAmount').value = 10;
+            document.getElementById('crisisMsg').style.display = 'none';
+            document.getElementById('logArea').innerText = '';
             updateDisplay();
         }
 
